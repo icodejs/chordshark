@@ -1,23 +1,23 @@
+import { Note } from 'tonal';
 import type { KeyMode } from '../app/App';
 
 export type KeyPreference = 'sharps' | 'flats';
 
-const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
-const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'] as const;
+const FLAT_PCS = new Set<string>(['Db', 'Eb', 'Gb', 'Ab', 'Bb']);
 
 export function midiNoteToPitchClass(noteNumber: number): number {
-  return ((noteNumber % 12) + 12) % 12;
+  const chroma = Note.chroma(Note.fromMidi(noteNumber));
+  return chroma ?? (((noteNumber % 12) + 12) % 12);
 }
 
-export function getKeyPreferenceForTonic(tonicPc: number, _mode: KeyMode): KeyPreference {
-  // Simple, explicit mapping per tonic pitch class.
-  // This is easy to extend later if you want more nuanced behavior.
+export function getKeyPreferenceForTonic(tonicPc: number, mode: KeyMode): KeyPreference {
+  void mode; // reserved for mode-specific key preference (e.g. minor keys)
   switch (tonicPc % 12) {
-    case 1: // Db / C#
-    case 3: // Eb
-    case 6: // Gb / F#
-    case 8: // Ab
-    case 10: // Bb
+    case 1:
+    case 3:
+    case 6:
+    case 8:
+    case 10:
       return 'flats';
     default:
       return 'sharps';
@@ -25,11 +25,14 @@ export function getKeyPreferenceForTonic(tonicPc: number, _mode: KeyMode): KeyPr
 }
 
 export function pitchClassToNoteName(pc: number, pref: KeyPreference): string {
-  const index = ((pc % 12) + 12) % 12;
-  return pref === 'flats' ? FLAT_NAMES[index] : SHARP_NAMES[index];
+  const normalised = ((pc % 12) + 12) % 12;
+  const base = Note.get(Note.fromMidi(60 + normalised)).pc ?? 'C';
+  if (pref === 'sharps' && FLAT_PCS.has(base)) {
+    return Note.enharmonic(base) ?? base;
+  }
+  return base;
 }
 
 export function pitchClassSetToNoteNames(pcs: number[], pref: KeyPreference): string[] {
   return pcs.map((pc) => pitchClassToNoteName(pc, pref));
 }
-

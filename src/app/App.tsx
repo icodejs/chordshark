@@ -43,13 +43,14 @@ export default function App() {
 
   useEffect(() => {
     const pcsArray = normalisePitchClassSet([...derivedActivePitchClasses]);
-    if (pcsArray.length === 0) {
-      setRecognisedChord(null);
-      setInversionLabel(null);
-      return;
-    }
+    const delay = pcsArray.length === 0 ? 0 : RECOGNITION_DEBOUNCE_MS;
 
     const timer = window.setTimeout(() => {
+      if (pcsArray.length === 0) {
+        setRecognisedChord(null);
+        setInversionLabel(null);
+        return;
+      }
       const chord = recogniseChord(pcsArray, chords);
       setRecognisedChord(chord);
       if (chord) {
@@ -58,7 +59,7 @@ export default function App() {
       } else {
         setInversionLabel(null);
       }
-    }, RECOGNITION_DEBOUNCE_MS);
+    }, delay);
 
     return () => window.clearTimeout(timer);
   }, [activeNoteNumbers, derivedActivePitchClasses, chords]);
@@ -74,7 +75,7 @@ export default function App() {
 
   const hasKeysHeld = activeNoteNumbers.length > 0;
 
-  const chordName = recognisedChord ? getChordDisplayName(recognisedChord, keyPreference) : null;
+  const chordName = recognisedChord ? getChordDisplayName(recognisedChord) : null;
 
   return (
     <>

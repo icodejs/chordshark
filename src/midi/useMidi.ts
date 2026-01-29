@@ -28,11 +28,12 @@ export function useMidi(): UseMidiResult {
   const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set());
   const [hasRecentMidiActivity, setHasRecentMidiActivity] = useState(false);
   const activityTimeoutRef = useRef<number | null>(null);
+  const attachToInputRef = useRef<((id: string | null) => void) | null>(null);
 
   // Keep a ref to current MIDI input to attach/detach listeners.
   useEffect(() => {
     if (typeof navigator === 'undefined' || !('requestMIDIAccess' in navigator)) {
-      setStatus('unsupported');
+      queueMicrotask(() => setStatus('unsupported'));
       return;
     }
 
@@ -104,6 +105,7 @@ export function useMidi(): UseMidiResult {
       currentInput = input;
       currentInput.onmidimessage = handleMIDIMessage;
     };
+    attachToInputRef.current = attachToInput;
 
     navigator
       .requestMIDIAccess()
@@ -135,6 +137,7 @@ export function useMidi(): UseMidiResult {
 
     return () => {
       mounted = false;
+      attachToInputRef.current = null;
       if (midiAccess) {
         midiAccess.onstatechange = null;
       }
@@ -153,6 +156,7 @@ export function useMidi(): UseMidiResult {
     if (id) {
       setStoredMidiInputId(id);
     }
+    attachToInputRef.current?.(id);
   }, []);
 
   const derivedActivePitchClasses = useMemo(() => {

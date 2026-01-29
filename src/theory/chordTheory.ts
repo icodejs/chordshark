@@ -1,5 +1,6 @@
+import { Chord, Key, Note } from 'tonal';
 import type { KeyMode } from '../app/App';
-import { midiNoteToPitchClass, pitchClassToNoteName, type KeyPreference } from './noteNames';
+import { getKeyPreferenceForTonic, midiNoteToPitchClass, pitchClassToNoteName } from './noteNames';
 
 export type TriadQuality = 'maj' | 'min' | 'dim' | 'aug';
 export type SeventhQuality = 'dom7' | 'maj7' | 'min7' | 'hdim7';
@@ -8,7 +9,7 @@ export type ChordQuality = TriadQuality | SeventhQuality;
 
 export interface DiatonicChord {
   id: string;
-  name: string;
+  symbol: string; // e.g. "Cmaj7", "Dm" – used for display
   pcs: number[]; // sorted pitch classes, length 3 or 4
   degree: string;
   quality: ChordQuality;
@@ -16,6 +17,7 @@ export interface DiatonicChord {
   rootPc: number;
 }
 
+/** Normalise input to sorted unique pitch classes (0–11). Accepts MIDI note numbers or raw PCs. */
 export function normalisePitchClassSet(input: Iterable<number>): number[] {
   const set = new Set<number>();
   for (const n of input) {
@@ -25,120 +27,87 @@ export function normalisePitchClassSet(input: Iterable<number>): number[] {
   return Array.from(set).sort((a, b) => a - b);
 }
 
-function buildScale(tonicPc: number, mode: KeyMode): number[] {
-  const majorSteps = [2, 2, 1, 2, 2, 2, 1];
-  const naturalMinorSteps = [2, 1, 2, 2, 1, 2, 2];
-  const steps = mode === 'major' ? majorSteps : naturalMinorSteps;
-
-  const scale = [((tonicPc % 12) + 12) % 12];
-  let pc = scale[0];
-  for (let i = 0; i < 6; i += 1) {
-    pc = (pc + steps[i]) % 12;
-    scale.push(pc);
-  }
-  return scale;
+function chordSymbolToPcs(symbol: string): number[] {
+  const c = Chord.get(symbol);
+  if (!c.notes.length) return [];
+  return c.notes.map((n) => Note.chroma(n)!) as number[];
 }
 
-function rotate<T>(arr: T[], offset: number): T[] {
-  const n = arr.length;
-  const o = ((offset % n) + n) % n;
-  return [...arr.slice(o), ...arr.slice(0, o)];
-}
+function buildDiatonicChordsForKey(
+  tonicPc: number,
+  mode: KeyMode,
+): DiatonicChord[] {
+  const keyPref = getKeyPreferenceForTonic(tonicPc, mode);
+  const tonicName = pitchClassToNoteName(tonicPc, keyPref);
 
-export function buildDiatonicChordsForKey(tonicPc: number, mode: KeyMode): DiatonicChord[] {
-  const scale = buildScale(tonicPc, mode); // 7 degrees
+  const keySource =
+    mode === 'major'
+      ? Key.majorKey(tonicName)
+      : Key.minorKey(tonicName).natural;
+
+  const triads = keySource.triads as string[];
+  const chords = keySource.chords as string[];
 
   const triadDegreesMajor = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'] as const;
-  const triadQualitiesMajor: TriadQuality[] = ['maj', 'min', 'min', 'maj', 'maj', 'min', 'dim'];
-
   const triadDegreesMinor = ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'] as const;
-  const triadQualitiesMinor: TriadQuality[] = ['min', 'dim', 'maj', 'min', 'min', 'maj', 'maj'];
-
   const seventhDegreesMajor = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'viiø'] as const;
-  const seventhQualitiesMajor: SeventhQuality[] = [
-    'maj7',
-    'min7',
-    'min7',
-    'maj7',
-    'dom7',
-    'min7',
-    'hdim7',
-  ];
-
   const seventhDegreesMinor = ['i', 'iiø', 'III', 'iv', 'v', 'VI', 'VII'] as const;
-  const seventhQualitiesMinor: SeventhQuality[] = [
-    'min7',
-    'hdim7',
-    'maj7',
-    'min7',
-    'min7',
-    'maj7',
-    'dom7',
-  ];
 
   const triadDegrees = mode === 'major' ? triadDegreesMajor : triadDegreesMinor;
-  const triadQualities = mode === 'major' ? triadQualitiesMajor : triadQualitiesMinor;
   const seventhDegrees = mode === 'major' ? seventhDegreesMajor : seventhDegreesMinor;
-  const seventhQualities = mode === 'major' ? seventhQualitiesMajor : seventhQualitiesMinor;
 
-  const chords: DiatonicChord[] = [];
+  const result: DiatonicChord[] = [];
 
-  for (let degreeIndex = 0; degreeIndex < 7; degreeIndex += 1) {
-    const rotatedScale = rotate(scale, degreeIndex);
-    const rootPc = rotatedScale[0];
-    const thirdPc = rotatedScale[2];
-    const fifthPc = rotatedScale[4];
-    const seventhPc = rotatedScale[6];
+  for (let i = 0; i < 7; i += 1) {
+    const triadSymbol = triads[i];
+    const seventhSymbol = chords[i];
+    const triadPcs = chordSymbolToPcs(triadSymbol);
+    const seventhPcs = chordSymbolToPcs(seventhSymbol);
+    const rootPc = triadPcs[0] ?? 0;
 
-    const triadPcs = normalisePitchClassSet([rootPc, thirdPc, fifthPc]);
-    const triadQuality = triadQualities[degreeIndex];
-    const triadDegree = triadDegrees[degreeIndex];
-
-    const triadNameSuffix =
-      triadQuality === 'maj'
-        ? ''
-        : triadQuality === 'min'
-        ? 'm'
-        : triadQuality === 'dim'
-        ? 'dim'
-        : 'aug';
-
-    chords.push({
-      id: `${mode}-${tonicPc}-triad-${degreeIndex}`,
-      name: '?', // human-readable names are not key-critical for recognition
+    result.push({
+      id: `${mode}-${tonicPc}-triad-${i}`,
+      symbol: triadSymbol,
       pcs: triadPcs,
-      degree: triadDegree,
-      quality: triadQuality,
+      degree: triadDegrees[i],
+      quality: inferTriadQuality(triadSymbol),
       type: 'triad',
       rootPc,
     });
 
-    const seventhQuality = seventhQualities[degreeIndex];
-    const seventhDegree = seventhDegrees[degreeIndex];
-    const seventhPcs = normalisePitchClassSet([rootPc, thirdPc, fifthPc, seventhPc]);
-
-    const seventhNameSuffix =
-      seventhQuality === 'maj7'
-        ? 'maj7'
-        : seventhQuality === 'min7'
-        ? 'm7'
-        : seventhQuality === 'dom7'
-        ? '7'
-        : 'm7b5';
-
-    chords.push({
-      id: `${mode}-${tonicPc}-7th-${degreeIndex}`,
-      name: '?',
+    result.push({
+      id: `${mode}-${tonicPc}-7th-${i}`,
+      symbol: seventhSymbol,
       pcs: seventhPcs,
-      degree: seventhDegree,
-      quality: seventhQuality,
+      degree: seventhDegrees[i],
+      quality: inferSeventhQuality(seventhSymbol),
       type: '7th',
       rootPc,
     });
   }
 
-  return chords;
+  return result;
 }
+
+function inferTriadQuality(symbol: string): TriadQuality {
+  const s = symbol.toLowerCase();
+  if (s.endsWith('dim')) return 'dim';
+  if (s.endsWith('aug') || s.includes('aug')) return 'aug';
+  if (s.includes('m') && !s.includes('maj') && !s.includes('m7')) return 'min';
+  return 'maj';
+}
+
+function inferSeventhQuality(symbol: string): SeventhQuality {
+  const s = symbol.toLowerCase();
+  if (s.endsWith('m7b5') || s.endsWith('mb5')) return 'hdim7';
+  if (s.endsWith('maj7') || s.endsWith('major7')) return 'maj7';
+  if (s.includes('m7') || (s.includes('m') && s.endsWith('7'))) return 'min7';
+  if (s.endsWith('7')) return 'dom7';
+  return 'maj7';
+}
+
+/** Build diatonic triads and seventh chords for the given key. */
+export { buildDiatonicChordsForKey };
 
 export function recogniseChord(activePcs: number[], chords: DiatonicChord[]): DiatonicChord | null {
   const normalisedActive = normalisePitchClassSet(activePcs);
@@ -166,30 +135,17 @@ export function detectInversionLabel(
 
   const [root, third, fifth, seventh] =
     chord.pcs.length === 3
-      ? chord.pcs
+      ? [chord.pcs[0], chord.pcs[1], chord.pcs[2], -1]
       : [chord.pcs[0], chord.pcs[1], chord.pcs[2], chord.pcs[3]];
 
   if (bassPc === root) return 'root';
   if (bassPc === third) return '1st inv';
-  if (bassPc === fifth) return chord.pcs.length === 3 ? '2nd inv' : '2nd inv';
+  if (bassPc === fifth) return '2nd inv';
   if (chord.pcs.length === 4 && bassPc === seventh) return '3rd inv';
   return null;
 }
 
-const QUALITY_SUFFIX: Record<ChordQuality, string> = {
-  maj: '',
-  min: 'm',
-  dim: 'dim',
-  aug: 'aug',
-  dom7: '7',
-  maj7: 'maj7',
-  min7: 'm7',
-  hdim7: 'm7b5',
-};
-
-export function getChordDisplayName(chord: DiatonicChord, keyPreference: KeyPreference): string {
-  const rootName = pitchClassToNoteName(chord.rootPc, keyPreference);
-  const suffix = QUALITY_SUFFIX[chord.quality];
-  return rootName + suffix;
+/** Display name for a recognised chord. Uses tonal's chord symbol (key spelling already applied). */
+export function getChordDisplayName(chord: DiatonicChord): string {
+  return chord.symbol;
 }
-
