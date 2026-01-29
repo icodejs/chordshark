@@ -20,6 +20,5 @@ alwaysApply: true
 ## Tests
 
 - **Unit tests** (Vitest): `npm run test`. Chord theory and recognition are covered in `src/theory/chordTheory.test.ts`.
-- **E2E tests** (Playwright): `npm run test:e2e`.
-- **Full check**: `npm run check` runs typecheck, lint, unit tests, build, and E2E (same as CI).
-- **Before committing**: Run the full pipeline (`npm run check`) and ensure it passes. Do not commit until typecheck, lint, unit tests, build, and E2E all succeed. CI runs the same steps and will fail if any do not pass.
+- **E2E tests** (Playwright): `npm run test:e2e`. Run from your terminal when needed; not required by the AI commit workflow.
+- **Before committing**: Run typecheck, lint, unit tests, and build (`npm run typecheck && npm run lint && npm run test && npm run build`) and ensure they pass. Do not commit until these succeed.

@@ -12,7 +12,7 @@ import type { RecognitionInputState } from './recognitionTypes';
 export type KeyMode = 'major' | 'minor';
 
 /** Delay before evaluating chord so input can stabilise (avoids flicker). */
-const RECOGNITION_DEBOUNCE_MS = 250;
+const RECOGNITION_DEBOUNCE_MS = 150;
 /** Minimum unique pitch classes before we evaluate (triad = 3, 7th = 4). */
 const MIN_PITCH_CLASSES_FOR_EVALUATION = 3;
 
@@ -129,9 +129,9 @@ export default function App() {
 
   return (
     <>
-      {/* Recognition panel: prominent top container */}
-      <section aria-label="Chord recognition" className="w-full border-b border-slate-800 bg-slate-800/50 backdrop-blur-sm">
-        <div className="mx-auto max-w-4xl px-4 py-6" data-testid="recognition-panel">
+      {/* Recognition panel: fixed min-height to avoid layout shift between idle/listening/success/mismatch */}
+      <section aria-label="Chord recognition" className="w-full border-b border-slate-800 bg-slate-800/50 backdrop-blur-sm min-h-[15rem] flex flex-col justify-center">
+        <div className="mx-auto max-w-4xl px-4 py-6 w-full" data-testid="recognition-panel">
           <RecognitionPanel
             recognitionState={recognitionState}
             recognisedChord={recognisedChord}

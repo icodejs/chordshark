@@ -53,7 +53,8 @@ export const RecognitionPanel: FC<Props> = ({
         >
           {isSuccess ? '✓' : isMismatch ? '○' : '…'}
         </div>
-        <div className="flex-1 min-w-0 min-h-[3.5rem] flex flex-col justify-center">
+        {/* Min-height reserves space for success (label + chord name + degree) to avoid layout shift from listening */}
+        <div className="flex-1 min-w-0 min-h-[8rem] flex flex-col justify-center">
           {isSuccess ? (
             <>
               <p className="text-slate-300 text-sm font-medium uppercase tracking-wider mb-1">
