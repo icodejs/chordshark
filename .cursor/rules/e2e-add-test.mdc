@@ -1,0 +1,33 @@
+---
+description: Add a new happy-path E2E test when a feature is introduced
+globs: e2e/**/*.spec.ts
+alwaysApply: false
+---
+
+# Add new E2E test (new feature)
+
+When adding a **new happy-path E2E test** for a new feature:
+
+1. **Location**
+   - Put tests in `e2e/`.
+   - One spec file per area (e.g. `app.spec.ts`, or a new `feature-name.spec.ts` if the feature is a distinct flow).
+   - Name files `*.spec.ts`.
+
+2. **Selectors**
+   - Prefer `data-testid` on the relevant UI (add to components if missing).
+   - Otherwise use `getByRole`, `getByLabelText`, or `getByText` with stable, user-visible text.
+   - Avoid class names or DOM structure for assertions.
+
+3. **Scope**
+   - Cover the **happy path** only: one or two short tests that prove the feature is reachable and behaves as intended.
+   - No exhaustive edge cases; keep the test count small.
+
+4. **Steps**
+   - Add the minimal `data-testid` (or ARIA) to the new UI in the app.
+   - In `e2e/`, add a `test.describe` (or extend an existing one) and one or two `test()` cases that: navigate if needed, perform the main user action, and assert the expected outcome.
+   - Run `npm run build && npm run test:e2e` to confirm they pass.
+
+5. **Conventions**
+   - Use `page.goto('/')` for app root; baseURL is set in Playwright config.
+   - Use `expect` with `toBeVisible()`, `toContainText()`, or similar; avoid brittle timeouts.
+   - Keep tests independent and deterministic.

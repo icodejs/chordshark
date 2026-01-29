@@ -14,7 +14,7 @@ export const RecognitionPanel: FC<Props> = ({ recognisedChord, chordName, invers
   // Blank state until user holds keys (MIDI input) — same min-height as active state to avoid layout shift
   if (!hasKeysHeld) {
     return (
-      <div className="flex items-center justify-center min-h-[7.5rem]">
+      <div className="flex items-center justify-center min-h-[7.5rem]" data-testid="recognition-placeholder">
         <p className="text-slate-500 text-sm font-medium tracking-wide">
           Play a chord to see recognition
         </p>

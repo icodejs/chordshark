@@ -1,0 +1,28 @@
+---
+description: Update existing E2E tests when requirements, UI flows, or behaviour change
+globs: e2e/**/*.spec.ts
+alwaysApply: false
+---
+
+# Update existing E2E tests (requirements / behaviour change)
+
+When **requirements, UI flows, or behaviour change** and existing E2E tests must be updated:
+
+1. **Identify affected tests**
+   - Open `e2e/*.spec.ts` and find tests that cover the changed flow or UI (selectors, text, or user steps).
+
+2. **Update selectors and steps**
+   - If UI text or structure changed: update `getByText`, `getByRole`, or `getByTestId` to match the new behaviour.
+   - If a new step is required in the happy path: add or adjust `page` actions (click, selectOption, fill) and assertions.
+   - If a flow was removed or replaced: remove or rewrite the test to reflect the current happy path; keep test count minimal.
+
+3. **Adjust testids in the app**
+   - If you renamed or moved UI: add or move `data-testid` (and ARIA where helpful) in the React components so E2E can target the same behaviour reliably.
+
+4. **Keep happy-path focus**
+   - Do not add extra edge-case tests unless explicitly requested.
+   - Ensure updated tests still run in CI: `npm run build && npm run test:e2e`.
+
+5. **Conventions**
+   - One logical assertion per behaviour; avoid duplicate tests for the same flow.
+   - Preserve deterministic, independent tests; no flaky waits.

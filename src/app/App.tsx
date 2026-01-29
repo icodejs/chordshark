@@ -80,8 +80,8 @@ export default function App() {
   return (
     <>
       {/* Recognition panel: prominent top container */}
-      <section className="w-full border-b border-slate-800 bg-slate-800/50 backdrop-blur-sm">
-        <div className="mx-auto max-w-4xl px-4 py-6">
+      <section aria-label="Chord recognition" className="w-full border-b border-slate-800 bg-slate-800/50 backdrop-blur-sm">
+        <div className="mx-auto max-w-4xl px-4 py-6" data-testid="recognition-panel">
           <RecognitionPanel
             recognisedChord={recognisedChord}
             chordName={chordName}
@@ -93,7 +93,7 @@ export default function App() {
 
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-3xl rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-sm p-6 space-y-6">
-          <header className="space-y-1">
+          <header className="space-y-1" data-testid="app-header">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
               Piano Chord Trainer
             </h1>
@@ -102,7 +102,7 @@ export default function App() {
             </p>
           </header>
 
-          <section className="space-y-3">
+          <section className="space-y-3" data-testid="key-and-device">
             <div className="flex flex-col gap-3 md:flex-row md:items-end">
               <DeviceSelector
                 inputs={inputs}
@@ -114,7 +114,7 @@ export default function App() {
             </div>
           </section>
 
-          <section>
+          <section data-testid="held-notes-section">
             <HeldNotes activeNoteNumbers={activeNoteNumbers} noteNames={heldNoteNames} />
           </section>
         </div>

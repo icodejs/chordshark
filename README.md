@@ -93,6 +93,15 @@ Assume a MIDI keyboard is connected and selected, and velocity is non-zero for N
     - The same device is pre-selected if still connected.
     - Key selector shows **D Minor**.
 
+### Quality gates and E2E tests
+
+- **Local checks** (same as CI):
+  `npm run typecheck` · `npm run lint` · `npm run build` · `npm run test:e2e`
+  One command for all: `npm run check`.
+- **E2E**: Playwright tests live in `e2e/` and run against the built app (`npm run preview`). They are a first-class gate: CI fails if they fail, like lint or type errors.
+- **Adding a new E2E test** (new feature): Use the Cursor rule **“Add new E2E test when a feature is introduced”** (in `.cursor/rules/e2e-add-test.mdc`). It defines location (`e2e/*.spec.ts`), selectors (`data-testid` / roles), and happy-path-only scope.
+- **Updating E2E tests** (requirements / behaviour change): Use the Cursor rule **“Update existing E2E tests when requirements, UI flows, or behaviour change”** (in `.cursor/rules/e2e-update-tests.mdc`). It defines how to adjust tests and app testids so behaviour changes are reflected consistently.
+
 ### Tech notes
 
 - **Stack**: React 18, TypeScript, Vite, Tailwind CSS (no component libraries).
