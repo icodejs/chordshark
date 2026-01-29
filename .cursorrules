@@ -1,0 +1,13 @@
+# Chordio – project context for AI
+
+## Git
+
+- **Author for commits**: Use the same identity as existing commits in this repo.
+  - When running `git commit`, set author/committer via environment so the commit succeeds:
+    - `GIT_AUTHOR_NAME='Tahir J' GIT_AUTHOR_EMAIL='icodejs@gmail.com' GIT_COMMITTER_NAME='Tahir J' GIT_COMMITTER_EMAIL='icodejs@gmail.com' git commit -m "..."`
+  - Or ensure repo-local config is set: `git config user.name "Tahir J"` and `git config user.email "icodejs@gmail.com"` (user can run this once).
+
+## Project
+
+- React + TypeScript + Vite; Tailwind for styles.
+- MIDI chord recognition app: theory in `src/theory/`, MIDI in `src/midi/`, UI in `src/components/` and `src/app/`.
