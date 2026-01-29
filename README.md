@@ -1,73 +1,105 @@
-# React + TypeScript + Vite
+## Piano Chord Trainer (React + TypeScript + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimal proof-of-concept web app to help you learn piano chords using **MIDI input** and **diatonic chord recognition**. Built with **React 18 + TypeScript + Vite** and **Tailwind CSS**.
 
-Currently, two official plugins are available:
+### Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Then open the printed local URL in a **MIDI-capable browser** (Chrome / Edge).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Connecting a MIDI keyboard
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Connect your MIDI keyboard via USB (or a MIDI–USB interface) before opening the app.
+- In the app:
+  - Look at the **MIDI Device** dropdown.
+  - Select your keyboard from the list.
+  - Status text should show **“MIDI ready”** once the browser has granted access.
+
+The selected device is remembered in `localStorage` and restored on reload (if still available).
+
+### Core flow
+
+1. **MIDI device selection**
+   - On load, the app calls `navigator.requestMIDIAccess` and populates the **MIDI Device** dropdown.
+   - Selecting a device starts listening for **NOTE_ON** (0x90, velocity > 0) and **NOTE_OFF** (0x80 or 0x90 with velocity 0) messages.
+   - Connection status and selected device are displayed at the top.
+
+2. **Musical key selection**
+   - Use the **Key** section to choose:
+     - **Tonic**: 12 pitch classes (C–B), rendered with sharps or flats depending on key signature.
+     - **Mode**: Major / Minor toggle.
+   - Internally keys are represented as `(tonicPitchClass 0–11, mode 'major' | 'minor')` and persisted to `localStorage`.
+
+3. **Chord recognition**
+   - As you play, the app tracks:
+     - `activeNoteNumbers: Set<number>` (raw MIDI note numbers)
+     - `derivedActivePitchClasses: Set<number>` (0–11, computed from note numbers)
+   - It builds **diatonic triads and 7th chords** for the selected key (natural minor for minor keys).
+   - Recognition is:
+     - **Pitch-class based** (ignores octave and voicing, so inversions match).
+     - **Exact-set**: it ignores duplicates but requires the same set size:
+       - `{C,E,G}` vs chord `{C,E,G}` → recognised.
+       - `{C,E,G,D}` vs `{C,E,G}` → not recognised.
+       - `{C,E,G}` vs `{C,E,G,B}` → not recognised.
+   - A short debounce (~80ms) avoids UI spam when playing fast notes.
+
+4. **UI panels**
+   - **Held notes** shows the current distinct pitch classes as note names.
+   - **Chord recognition** shows:
+     - ✅ “Recognised” + the diatonic **degree** (e.g. `I`, `ii`, `vii°`) and chord type (triad / 7th),
+     - or ❌ “Not recognised”.
+   - A simple inversion label is shown when detectable (root / 1st inv / 2nd inv / 3rd inv).
+
+### Manual test cases
+
+Assume a MIDI keyboard is connected and selected, and velocity is non-zero for NOTE_ON events.
+
+- **Test 1 – C major key, root position triad**
+  - Set key to **C Major**.
+  - Play **C–E–G** (any octaves, notes held together).
+  - Expected:
+    - Held notes show `C`, `E`, `G`.
+    - Recognition: ✅ **Recognised** as the **I triad** (label may say `root`).
+
+- **Test 2 – C major key, first inversion triad**
+  - Set key to **C Major**.
+  - Play **E–G–C** (any octaves).
+  - Expected:
+    - Held notes show `C`, `E`, `G`.
+    - Recognition: ✅ **Recognised** as **I triad** with inversion label like `1st inv`.
+
+- **Test 3 – C major key, extra non-diatonic note**
+  - Set key to **C Major**.
+  - Play **C–E–G–D**.
+  - Expected:
+    - Held notes show `C`, `D`, `E`, `G`.
+    - Recognition: ❌ **Not recognised** (extra pitch class).
+
+- **Test 4 – A minor key, diatonic 7th**
+  - Set key to **A Minor** (natural minor).
+  - Play **A–C–E–G**.
+  - Expected:
+    - Held notes show `A`, `C`, `E`, `G`.
+    - Recognition: ✅ **Recognised** as **i7** (7th chord).
+
+- **Test 5 – Persistence**
+  - Select **a specific MIDI device** and set key to **D Minor**.
+  - Reload the page.
+  - Expected:
+    - The same device is pre-selected if still connected.
+    - Key selector shows **D Minor**.
+
+### Tech notes
+
+- **Stack**: React 18, TypeScript, Vite, Tailwind CSS (no component libraries).
+- **MIDI**: Web MIDI API (`navigator.requestMIDIAccess`), no extra MIDI libraries.
+- **State & logic**:
+  - `src/midi/useMidi.ts` – MIDI access, device selection, active note tracking.
+  - `src/theory/noteNames.ts` – pitch-class helpers and note spelling with sharps/flats preference.
+  - `src/theory/chordTheory.ts` – diatonic triads + 7ths (major & natural minor), pitch-class set matching, inversion detection.
+  - `src/components/*` – small, focused UI components.
+  - `src/utils/storage.ts` – `localStorage` helpers for MIDI device and key settings.

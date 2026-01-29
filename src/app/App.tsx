@@ -19,6 +19,7 @@ export default function App() {
     status,
     activeNoteNumbers,
     derivedActivePitchClasses,
+    hasRecentMidiActivity,
     selectInput,
   } = useMidi();
 
@@ -72,35 +73,49 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-3xl rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-sm p-6 space-y-6">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Piano Chord Trainer
-          </h1>
-          <p className="text-sm text-slate-400">
-            Connect a MIDI keyboard, choose a key, and play chords to see if they&apos;re diatonic.
-          </p>
-        </header>
+    <>
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-3xl rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-sm p-6 space-y-6">
+          <header className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
+              Piano Chord Trainer
+            </h1>
+            <p className="text-sm text-slate-400">
+              Connect a MIDI keyboard, choose a key, and play chords to see if they&apos;re diatonic.
+            </p>
+          </header>
 
-        <section className="space-y-3">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end">
-            <DeviceSelector
-              inputs={inputs}
-              selectedId={selectedInputId}
-              status={status}
-              onChange={selectInput}
-            />
-            <KeySelector tonicPc={tonicPc} mode={mode} onTonicChange={setTonicPc} onModeChange={setMode} />
-          </div>
-        </section>
+          <section className="space-y-3">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end">
+              <DeviceSelector
+                inputs={inputs}
+                selectedId={selectedInputId}
+                status={status}
+                onChange={selectInput}
+              />
+              <KeySelector tonicPc={tonicPc} mode={mode} onTonicChange={setTonicPc} onModeChange={setMode} />
+            </div>
+          </section>
 
-        <section className="grid gap-4 md:grid-cols-2">
-          <HeldNotes activeNoteNumbers={activeNoteNumbers} noteNames={heldNoteNames} />
-          <RecognitionPanel recognisedChord={recognisedChord} inversionLabel={inversionLabel} />
-        </section>
+          <section className="grid gap-4 md:grid-cols-2">
+            <HeldNotes activeNoteNumbers={activeNoteNumbers} noteNames={heldNoteNames} />
+            <RecognitionPanel recognisedChord={recognisedChord} inversionLabel={inversionLabel} />
+          </section>
+        </div>
       </div>
-    </div>
+
+      {/* MIDI activity indicator, bottom-right */}
+      <div className="fixed bottom-4 right-4 flex items-center gap-2 text-[10px] font-medium text-slate-400 select-none pointer-events-none">
+        <div
+          className={`h-3 w-3 rounded-full border border-yellow-300 shadow-[0_0_0_1px_rgba(250,204,21,0.4)] transition-transform transition-opacity duration-150 ${
+            hasRecentMidiActivity
+              ? 'bg-yellow-300 opacity-100 scale-110 shadow-[0_0_10px_rgba(250,204,21,0.9)]'
+              : 'bg-yellow-300/20 opacity-40 scale-90'
+          }`}
+        />
+        <span className="uppercase tracking-[0.16em]">MIDI</span>
+      </div>
+    </>
   );
 }
 
