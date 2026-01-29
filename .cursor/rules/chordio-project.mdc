@@ -21,5 +21,5 @@ alwaysApply: true
 
 - **Unit tests** (Vitest): `npm run test`. Chord theory and recognition are covered in `src/theory/chordTheory.test.ts`.
 - **E2E tests** (Playwright): `npm run test:e2e`.
-- **Full check**: `npm run check` runs typecheck, lint, unit tests, build, and E2E.
-- A successful code change must keep **unit tests passing**; run `npm run test` before committing. CI runs unit tests and will fail if they do not pass.
+- **Full check**: `npm run check` runs typecheck, lint, unit tests, build, and E2E (same as CI).
+- **Before committing**: Run the full pipeline (`npm run check`) and ensure it passes. Do not commit until typecheck, lint, unit tests, build, and E2E all succeed. CI runs the same steps and will fail if any do not pass.
