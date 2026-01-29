@@ -1,16 +1,22 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useMidi } from '../midi/useMidi';
 import { buildDiatonicChordsForKey, normalisePitchClassSet, recogniseChord, type DiatonicChord, detectInversionLabel, getChordDisplayName } from '../theory/chordTheory';
-import { getKeyPreferenceForTonic, midiNoteToPitchClass, pitchClassSetToNoteNames } from '../theory/noteNames';
+import { getKeyPreferenceForTonic, midiNoteToPitchClass, pitchClassSetToNoteNames, pitchClassToNoteName } from '../theory/noteNames';
 import { DeviceSelector } from '../components/DeviceSelector';
 import { KeySelector } from '../components/KeySelector';
 import { HeldNotes } from '../components/HeldNotes';
 import { RecognitionPanel } from '../components/RecognitionPanel';
 import { getStoredKeyMode, getStoredKeyTonicPc, setStoredKeyMode, setStoredKeyTonicPc } from '../utils/storage';
+import type { RecognitionInputState } from './recognitionTypes';
 
 export type KeyMode = 'major' | 'minor';
 
-const RECOGNITION_DEBOUNCE_MS = 80;
+/** Delay before evaluating chord so input can stabilise (avoids flicker). */
+const RECOGNITION_DEBOUNCE_MS = 250;
+/** Minimum unique pitch classes before we evaluate (triad = 3, 7th = 4). */
+const MIN_PITCH_CLASSES_FOR_EVALUATION = 3;
+
+export type { RecognitionInputState } from './recognitionTypes';
 
 export default function App() {
   const {
@@ -26,8 +32,10 @@ export default function App() {
   const [tonicPc, setTonicPc] = useState<number>(() => getStoredKeyTonicPc() ?? 0);
   const [mode, setMode] = useState<KeyMode>(() => getStoredKeyMode() ?? 'major');
 
+  const [evaluatedPcs, setEvaluatedPcs] = useState<number[] | null>(null);
   const [recognisedChord, setRecognisedChord] = useState<DiatonicChord | null>(null);
   const [inversionLabel, setInversionLabel] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setStoredKeyTonicPc(tonicPc);
@@ -41,17 +49,31 @@ export default function App() {
 
   const chords = useMemo(() => buildDiatonicChordsForKey(tonicPc, mode), [tonicPc, mode]);
 
-  useEffect(() => {
-    const pcsArray = normalisePitchClassSet([...derivedActivePitchClasses]);
-    const delay = pcsArray.length === 0 ? 0 : RECOGNITION_DEBOUNCE_MS;
+  const currentPcs = useMemo(
+    () => normalisePitchClassSet([...derivedActivePitchClasses]),
+    [derivedActivePitchClasses],
+  );
 
-    const timer = window.setTimeout(() => {
-      if (pcsArray.length === 0) {
+  useEffect(() => {
+    if (debounceRef.current !== null) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+
+    const runEvaluation = () => {
+      if (currentPcs.length === 0) {
+        setEvaluatedPcs(null);
         setRecognisedChord(null);
         setInversionLabel(null);
         return;
       }
-      const chord = recogniseChord(pcsArray, chords);
+      setEvaluatedPcs([...currentPcs]);
+      if (currentPcs.length < MIN_PITCH_CLASSES_FOR_EVALUATION) {
+        setRecognisedChord(null);
+        setInversionLabel(null);
+        return;
+      }
+      const chord = recogniseChord(currentPcs, chords);
       setRecognisedChord(chord);
       if (chord) {
         const label = detectInversionLabel(activeNoteNumbers, chord);
@@ -59,10 +81,40 @@ export default function App() {
       } else {
         setInversionLabel(null);
       }
-    }, delay);
+    };
 
-    return () => window.clearTimeout(timer);
-  }, [activeNoteNumbers, derivedActivePitchClasses, chords]);
+    const delay = currentPcs.length === 0 ? 0 : RECOGNITION_DEBOUNCE_MS;
+    debounceRef.current = window.setTimeout(runEvaluation, delay);
+    return () => {
+      if (debounceRef.current !== null) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
+    };
+  }, [activeNoteNumbers, currentPcs, chords]);
+
+  const hasKeysHeld = activeNoteNumbers.length > 0;
+
+  const inputStable =
+    hasKeysHeld &&
+    evaluatedPcs !== null &&
+    currentPcs.length === evaluatedPcs.length &&
+    currentPcs.every((pc, i) => pc === evaluatedPcs![i]);
+
+  const recognitionState: RecognitionInputState = !hasKeysHeld
+    ? 'idle'
+    : !inputStable
+      ? 'listening'
+      : recognisedChord
+        ? 'success'
+        : evaluatedPcs!.length >= MIN_PITCH_CLASSES_FOR_EVALUATION
+          ? 'mismatch'
+          : 'listening';
+
+  const keyDisplayName = useMemo(() => {
+    const tonicName = pitchClassToNoteName(tonicPc, keyPreference);
+    return `${tonicName} ${mode}`;
+  }, [tonicPc, mode, keyPreference]);
 
   const heldNoteNames = useMemo(
     () =>
@@ -73,8 +125,6 @@ export default function App() {
     [activeNoteNumbers, keyPreference],
   );
 
-  const hasKeysHeld = activeNoteNumbers.length > 0;
-
   const chordName = recognisedChord ? getChordDisplayName(recognisedChord) : null;
 
   return (
@@ -83,10 +133,11 @@ export default function App() {
       <section aria-label="Chord recognition" className="w-full border-b border-slate-800 bg-slate-800/50 backdrop-blur-sm">
         <div className="mx-auto max-w-4xl px-4 py-6" data-testid="recognition-panel">
           <RecognitionPanel
+            recognitionState={recognitionState}
             recognisedChord={recognisedChord}
             chordName={chordName}
             inversionLabel={inversionLabel}
-            hasKeysHeld={hasKeysHeld}
+            keyDisplayName={keyDisplayName}
           />
         </div>
       </section>
