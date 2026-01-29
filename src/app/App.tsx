@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useMidi } from '../midi/useMidi';
-import { buildDiatonicChordsForKey, normalisePitchClassSet, recogniseChord, type DiatonicChord, detectInversionLabel } from '../theory/chordTheory';
+import { buildDiatonicChordsForKey, normalisePitchClassSet, recogniseChord, type DiatonicChord, detectInversionLabel, getChordDisplayName } from '../theory/chordTheory';
 import { getKeyPreferenceForTonic, midiNoteToPitchClass, pitchClassSetToNoteNames } from '../theory/noteNames';
 import { DeviceSelector } from '../components/DeviceSelector';
 import { KeySelector } from '../components/KeySelector';
@@ -74,6 +74,8 @@ export default function App() {
 
   const hasKeysHeld = activeNoteNumbers.length > 0;
 
+  const chordName = recognisedChord ? getChordDisplayName(recognisedChord, keyPreference) : null;
+
   return (
     <>
       {/* Recognition panel: prominent top container */}
@@ -81,6 +83,7 @@ export default function App() {
         <div className="mx-auto max-w-4xl px-4 py-6">
           <RecognitionPanel
             recognisedChord={recognisedChord}
+            chordName={chordName}
             inversionLabel={inversionLabel}
             hasKeysHeld={hasKeysHeld}
           />

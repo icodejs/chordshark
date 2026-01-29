@@ -3,11 +3,12 @@ import type { DiatonicChord } from '../theory/chordTheory';
 
 interface Props {
   recognisedChord: DiatonicChord | null;
+  chordName: string | null;
   inversionLabel: string | null;
   hasKeysHeld: boolean;
 }
 
-export const RecognitionPanel: FC<Props> = ({ recognisedChord, inversionLabel, hasKeysHeld }) => {
+export const RecognitionPanel: FC<Props> = ({ recognisedChord, chordName, inversionLabel, hasKeysHeld }) => {
   const isRecognised = Boolean(recognisedChord);
 
   // Blank state until user holds keys (MIDI input) — same min-height as active state to avoid layout shift
@@ -45,9 +46,14 @@ export const RecognitionPanel: FC<Props> = ({ recognisedChord, inversionLabel, h
               <p className="text-slate-300 text-sm font-medium uppercase tracking-wider mb-1">
                 Diatonic chord
               </p>
-              <p className="text-2xl sm:text-3xl font-bold text-slate-50 tracking-tight leading-tight">
+              {chordName && (
+                <p className="text-2xl sm:text-3xl font-bold text-emerald-100 tracking-tight leading-tight mb-1">
+                  {chordName}
+                </p>
+              )}
+              <p className="text-lg sm:text-xl font-semibold text-slate-50 tracking-tight leading-tight">
                 {recognisedChord?.degree}
-                <span className="text-lg font-normal text-slate-400 ml-2">
+                <span className="text-base font-normal text-slate-400 ml-2">
                   {recognisedChord?.type === 'triad' ? 'triad' : '7th'}
                 </span>
                 {inversionLabel && (

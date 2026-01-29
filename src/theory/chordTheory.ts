@@ -1,5 +1,5 @@
 import type { KeyMode } from '../app/App';
-import { midiNoteToPitchClass } from './noteNames';
+import { midiNoteToPitchClass, pitchClassToNoteName, type KeyPreference } from './noteNames';
 
 export type TriadQuality = 'maj' | 'min' | 'dim' | 'aug';
 export type SeventhQuality = 'dom7' | 'maj7' | 'min7' | 'hdim7';
@@ -174,5 +174,22 @@ export function detectInversionLabel(
   if (bassPc === fifth) return chord.pcs.length === 3 ? '2nd inv' : '2nd inv';
   if (chord.pcs.length === 4 && bassPc === seventh) return '3rd inv';
   return null;
+}
+
+const QUALITY_SUFFIX: Record<ChordQuality, string> = {
+  maj: '',
+  min: 'm',
+  dim: 'dim',
+  aug: 'aug',
+  dom7: '7',
+  maj7: 'maj7',
+  min7: 'm7',
+  hdim7: 'm7b5',
+};
+
+export function getChordDisplayName(chord: DiatonicChord, keyPreference: KeyPreference): string {
+  const rootName = pitchClassToNoteName(chord.rootPc, keyPreference);
+  const suffix = QUALITY_SUFFIX[chord.quality];
+  return rootName + suffix;
 }
 
