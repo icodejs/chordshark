@@ -113,9 +113,11 @@ export function recogniseChord(activePcs: number[], chords: DiatonicChord[]): Di
   const normalisedActive = normalisePitchClassSet(activePcs);
   for (const chord of chords) {
     if (chord.pcs.length !== normalisedActive.length) continue;
+    // chord.pcs are in chord order (root, third, fifth); normalisedActive is sorted. Compare as sets.
+    const chordPcsSorted = [...chord.pcs].sort((a, b) => a - b);
     let match = true;
-    for (let i = 0; i < chord.pcs.length; i += 1) {
-      if (chord.pcs[i] !== normalisedActive[i]) {
+    for (let i = 0; i < chordPcsSorted.length; i += 1) {
+      if (chordPcsSorted[i] !== normalisedActive[i]) {
         match = false;
         break;
       }
