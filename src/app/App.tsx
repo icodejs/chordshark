@@ -72,8 +72,21 @@ export default function App() {
     [activeNoteNumbers, keyPreference],
   );
 
+  const hasKeysHeld = activeNoteNumbers.length > 0;
+
   return (
     <>
+      {/* Recognition panel: prominent top container */}
+      <section className="w-full border-b border-slate-800 bg-slate-800/50 backdrop-blur-sm">
+        <div className="mx-auto max-w-4xl px-4 py-6">
+          <RecognitionPanel
+            recognisedChord={recognisedChord}
+            inversionLabel={inversionLabel}
+            hasKeysHeld={hasKeysHeld}
+          />
+        </div>
+      </section>
+
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-3xl rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-sm p-6 space-y-6">
           <header className="space-y-1">
@@ -97,9 +110,8 @@ export default function App() {
             </div>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-2">
+          <section>
             <HeldNotes activeNoteNumbers={activeNoteNumbers} noteNames={heldNoteNames} />
-            <RecognitionPanel recognisedChord={recognisedChord} inversionLabel={inversionLabel} />
           </section>
         </div>
       </div>
