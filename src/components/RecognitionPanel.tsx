@@ -4,42 +4,68 @@ import type { DiatonicChord } from '../theory/chordTheory';
 interface Props {
   recognisedChord: DiatonicChord | null;
   inversionLabel: string | null;
+  hasKeysHeld: boolean;
 }
 
-export const RecognitionPanel: FC<Props> = ({ recognisedChord, inversionLabel }) => {
+export const RecognitionPanel: FC<Props> = ({ recognisedChord, inversionLabel, hasKeysHeld }) => {
   const isRecognised = Boolean(recognisedChord);
 
+  // Blank state until user holds keys (MIDI input) — same min-height as active state to avoid layout shift
+  if (!hasKeysHeld) {
+    return (
+      <div className="flex items-center justify-center min-h-[7.5rem]">
+        <p className="text-slate-500 text-sm font-medium tracking-wide">
+          Play a chord to see recognition
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-      <h2 className="text-sm font-semibold text-slate-200">Chord recognition</h2>
-      <div className="mt-3 flex items-center gap-2">
-        <span
-          className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
+    <div
+      className={`rounded-xl border-2 p-6 transition-all duration-200 min-h-[7.5rem] flex ${
+        isRecognised
+          ? 'border-emerald-500/60 bg-emerald-950/40 shadow-[0_0_24px_rgba(16,185,129,0.12)]'
+          : 'border-amber-500/50 bg-amber-950/30 shadow-[0_0_24px_rgba(245,158,11,0.1)]'
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
+        <div
+          className={`flex-shrink-0 inline-flex h-14 w-14 items-center justify-center rounded-full text-2xl font-bold ring-2 ${
             isRecognised
-              ? 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/40'
-              : 'bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/40'
+              ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/50'
+              : 'bg-amber-500/20 text-amber-300 ring-amber-500/50'
           }`}
         >
-          {isRecognised ? '✓' : '×'}
-        </span>
-        <div className="text-sm">
+          {isRecognised ? '✓' : '○'}
+        </div>
+        <div className="flex-1 min-w-0 min-h-[3.5rem] flex flex-col justify-center">
           {isRecognised ? (
-            <p className="text-slate-100">
-              <span className="font-medium">Recognised:</span>{' '}
-              <span className="font-semibold">
-                {recognisedChord?.degree}{' '}
-                <span className="text-xs font-normal text-slate-400">
-                  ({recognisedChord?.type === 'triad' ? 'triad' : '7th'})
+            <>
+              <p className="text-slate-300 text-sm font-medium uppercase tracking-wider mb-1">
+                Diatonic chord
+              </p>
+              <p className="text-2xl sm:text-3xl font-bold text-slate-50 tracking-tight leading-tight">
+                {recognisedChord?.degree}
+                <span className="text-lg font-normal text-slate-400 ml-2">
+                  {recognisedChord?.type === 'triad' ? 'triad' : '7th'}
                 </span>
-              </span>
-              {inversionLabel && (
-                <span className="ml-2 rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-300">
-                  {inversionLabel}
-                </span>
-              )}
-            </p>
+                {inversionLabel && (
+                  <span className="ml-3 inline-flex items-center rounded-full bg-slate-700/80 px-3 py-1 text-sm font-medium text-slate-200">
+                    {inversionLabel}
+                  </span>
+                )}
+              </p>
+            </>
           ) : (
-            <p className="text-slate-400">Not recognised as a diatonic triad or 7th in this key.</p>
+            <>
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-1">
+                Not in key
+              </p>
+              <p className="text-xl sm:text-2xl font-semibold text-amber-200/90 leading-tight">
+                Not a diatonic triad or 7th in this key
+              </p>
+            </>
           )}
         </div>
       </div>
