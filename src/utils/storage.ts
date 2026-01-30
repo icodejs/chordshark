@@ -1,9 +1,9 @@
 import type { KeyMode } from '../app/App';
 
 const STORAGE_KEYS = {
-  midiInputId: 'chordio_selectedMidiInputId',
-  keyTonicPc: 'chordio_selectedKeyTonicPc',
-  keyMode: 'chordio_selectedKeyMode',
+  midiInputId: 'chordshark_selectedMidiInputId',
+  keyTonicPc: 'chordshark_selectedKeyTonicPc',
+  keyMode: 'chordshark_selectedKeyMode',
 } as const;
 
 function safeGet(key: string): string | null {

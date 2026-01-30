@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright config for Chordio E2E tests.
+ * Playwright config for Chordshark E2E tests.
  * CI: run after `npm run build`; webServer starts `npm run preview`.
  * Local: same, or set reuseExistingServer so a running preview is reused.
  */
