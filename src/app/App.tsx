@@ -129,22 +129,25 @@ export default function App() {
 
   return (
     <>
-      {/* Recognition panel: fixed min-height to avoid layout shift between idle/listening/success/mismatch */}
-      <section aria-label="Chord recognition" className="w-full border-b border-slate-800 bg-slate-800/50 backdrop-blur-sm min-h-[15rem] flex flex-col justify-center">
-        <div className="mx-auto max-w-4xl px-4 py-6 w-full" data-testid="recognition-panel">
-          <RecognitionPanel
-            recognitionState={recognitionState}
-            recognisedChord={recognisedChord}
-            chordName={chordName}
-            inversionLabel={inversionLabel}
-            keyDisplayName={keyDisplayName}
-          />
-        </div>
-      </section>
+      <div className="min-h-screen flex">
+        {/* Left sidebar: Key (top) and MIDI Device (bottom) */}
+        <aside className="flex flex-col justify-between w-56 shrink-0 border-r border-slate-800 bg-slate-900/60 p-4">
+          <div data-testid="key-selector-area">
+            <KeySelector tonicPc={tonicPc} mode={mode} onTonicChange={setTonicPc} onModeChange={setMode} />
+          </div>
+          <div className="mt-auto pt-6" data-testid="device-selector-area">
+            <DeviceSelector
+              inputs={inputs}
+              selectedId={selectedInputId}
+              status={status}
+              onChange={selectInput}
+            />
+          </div>
+        </aside>
 
-      <div className="min-h-screen flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-3xl rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-sm p-6 space-y-6">
-          <header className="space-y-1" data-testid="app-header">
+        {/* Main content: Recognition → Keyboard → Held notes */}
+        <main className="flex-1 min-w-0 flex flex-col">
+          <header className="shrink-0 px-4 pt-4 pb-2" data-testid="app-header">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
               Piano Chord Trainer
             </h1>
@@ -153,22 +156,25 @@ export default function App() {
             </p>
           </header>
 
-          <section className="space-y-3" data-testid="key-and-device">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end">
-              <DeviceSelector
-                inputs={inputs}
-                selectedId={selectedInputId}
-                status={status}
-                onChange={selectInput}
+          {/* Recognition panel: fixed min-height to avoid layout shift */}
+          <section aria-label="Chord recognition" className="shrink-0 w-full border-b border-slate-800 bg-slate-800/50 backdrop-blur-sm min-h-[15rem] flex flex-col justify-center">
+            <div className="mx-auto max-w-4xl px-4 py-6 w-full" data-testid="recognition-panel">
+              <RecognitionPanel
+                recognitionState={recognitionState}
+                recognisedChord={recognisedChord}
+                chordName={chordName}
+                inversionLabel={inversionLabel}
+                keyDisplayName={keyDisplayName}
               />
-              <KeySelector tonicPc={tonicPc} mode={mode} onTonicChange={setTonicPc} onModeChange={setMode} />
             </div>
           </section>
 
-          <section data-testid="held-notes-section">
-            <HeldNotes activeNoteNumbers={activeNoteNumbers} noteNames={heldNoteNames} />
-          </section>
-        </div>
+          <div className="flex-1 px-4 py-6 space-y-6">
+            <section data-testid="held-notes-section">
+              <HeldNotes activeNoteNumbers={activeNoteNumbers} noteNames={heldNoteNames} />
+            </section>
+          </div>
+        </main>
       </div>
 
       {/* MIDI activity indicator, bottom-right */}

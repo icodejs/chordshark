@@ -33,7 +33,8 @@ test.describe('Piano Chord Trainer', () => {
     await page.goto('/');
 
     await expect(page.getByTestId('app-header')).toBeVisible();
-    await expect(page.getByTestId('key-and-device')).toBeVisible();
+    await expect(page.getByTestId('key-selector-area')).toBeVisible();
+    await expect(page.getByTestId('device-selector-area')).toBeVisible();
     await expect(page.getByText(/Connect a MIDI keyboard/i)).toBeVisible();
   });
 });
