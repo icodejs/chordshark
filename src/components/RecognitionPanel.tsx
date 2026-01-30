@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import type { DiatonicChord } from '../theory/chordTheory';
 import type { RecognitionInputState } from '../app/recognitionTypes';
+import { getChordDisplayName } from '../theory/chordTheory';
 
 interface Props {
   recognitionState: RecognitionInputState;
@@ -8,6 +9,9 @@ interface Props {
   chordName: string | null;
   inversionLabel: string | null;
   keyDisplayName: string;
+  testMode?: boolean;
+  targetChord?: DiatonicChord | null;
+  testCorrectFlash?: boolean;
 }
 
 export const RecognitionPanel: FC<Props> = ({
@@ -16,10 +20,51 @@ export const RecognitionPanel: FC<Props> = ({
   chordName,
   inversionLabel,
   keyDisplayName,
+  testMode = false,
+  targetChord = null,
+  testCorrectFlash = false,
 }) => {
   const isSuccess = recognitionState === 'success';
   const isMismatch = recognitionState === 'mismatch';
   const isListening = recognitionState === 'listening';
+
+  if (testMode && targetChord) {
+    if (testCorrectFlash) {
+      return (
+        <div
+          className="rounded-xl border-2 border-emerald-500/70 bg-emerald-950/50 shadow-[0_0_32px_rgba(16,185,129,0.2)] min-h-[7.5rem] flex items-center justify-center p-6 transition-all duration-300"
+          data-testid="test-correct-feedback"
+        >
+          <div className="flex flex-col items-center gap-2 text-center">
+            <span className="text-5xl" aria-hidden>✓</span>
+            <p className="text-2xl sm:text-3xl font-bold text-emerald-100 tracking-tight">
+              Correct!
+            </p>
+            <p className="text-slate-400 text-sm">Next chord in a moment…</p>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div
+        className="rounded-xl border-2 border-sky-500/50 bg-sky-950/30 min-h-[7.5rem] flex items-center justify-center p-6"
+        data-testid="test-prompt"
+      >
+        <div className="flex flex-col items-center gap-1 text-center">
+          <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+            Play this chord
+          </p>
+          <p className="text-3xl sm:text-4xl font-bold text-sky-100 tracking-tight">
+            {getChordDisplayName(targetChord)}
+          </p>
+          <p className="text-lg text-slate-400 mt-1">
+            {targetChord.degree}
+            <span className="text-slate-500 ml-2 text-base">{targetChord.type}</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (recognitionState === 'idle') {
     return (
