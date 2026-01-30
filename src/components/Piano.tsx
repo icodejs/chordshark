@@ -1,8 +1,9 @@
 import type { FC } from 'react';
+import { Note } from 'tonal';
 
 /**
  * 3-octave piano keyboard (SVG). Visual reference: https://svgsilh.com/svg/307653.svg
- * UI only; no interaction or logic.
+ * Accepts activeNoteNumbers to highlight pressed keys (darker fill + note label).
  */
 
 export const DEFAULT_PIANO_RANGE = ['C3', 'B5'] as const;
@@ -33,6 +34,8 @@ const OPTS = {
   strokeWidth: 1,
   stroke: '#39383D',
   palette: ['#39383D', '#F2F2EF'] as const,
+  /** Darker fill when key is pressed (black key, white key). */
+  pressedPalette: ['#1a1a1d', '#c4c4be'] as const,
 };
 
 type Range = readonly [string, string];
@@ -59,7 +62,10 @@ function whiteIndex(index: number) {
 function getNoteName(index: number, octaveStart: number): string {
   const layout = KEYBOARD_LAYOUT[index % 12];
   const octave = Math.floor(index / 12) + octaveStart;
-  const idx = layout.pitches.length > 1 ? 1 : 0;
+  // Use natural name (index 0) for white keys; use sharp (index 1) for black keys only.
+  // Otherwise C would become "B#", F "E#", B "Cb" and MIDI/octave matching would be wrong.
+  const isAccidental = ACCIDENTALS.includes(index % 12);
+  const idx = layout.pitches.length > 1 && isAccidental ? 1 : 0;
   const pitch = layout.pitches[idx] ?? (layout.pitches[0] as string);
   return pitch + octave;
 }
@@ -97,11 +103,22 @@ function getKeyOffset(index: number, keyOffset: number, scaleX: number, strokeWi
   return sum;
 }
 
-function buildKeys(range: Range): { note: string; points: string; fill: string; stroke: string; strokeWidth: number }[] {
+interface KeyData {
+  note: string;
+  points: string;
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+  isBlack: boolean;
+  cx: number;
+  cy: number;
+}
+
+function buildKeys(range: Range): KeyData[] {
   const { keyCount, keyOffset, octaveStart } = parseRange(range);
   const { scaleX, scaleY, lowerWidth, upperHeight, lowerHeight, strokeWidth, stroke, palette } = OPTS;
   const totalHeight = (lowerHeight + upperHeight) * scaleY;
-  const keys: { note: string; points: string; fill: string; stroke: string; strokeWidth: number }[] = [];
+  const keys: KeyData[] = [];
 
   for (let i = keyOffset; i < keyOffset + keyCount; i++) {
     const layout = KEYBOARD_LAYOUT[i % 12];
@@ -132,12 +149,21 @@ function buildKeys(range: Range): { note: string; points: string; fill: string; 
         ];
     const ptsStr = pts.map((p) => p.join(',')).join(' ');
 
+    const note = getNoteName(i, octaveStart);
+    const cx = isBlack
+      ? upperOff(i) + offsetX + upperW / 2
+      : offsetX + lowerW / 2;
+    const cy = isBlack ? upperY / 2 : (upperY + totalHeight + offsetY) / 2;
+
     keys.push({
-      note: getNoteName(i, octaveStart),
+      note,
       points: ptsStr,
       fill: palette[isBlack ? 0 : 1],
       stroke,
       strokeWidth,
+      isBlack,
+      cx,
+      cy,
     });
   }
   return keys;
@@ -156,11 +182,14 @@ export interface PianoProps {
   range?: readonly [string, string];
   width?: string | number;
   height?: string | number;
+  /** MIDI note numbers currently held; matching keys are shown darker with labels. */
+  activeNoteNumbers?: number[];
 }
 
-export const Piano: FC<PianoProps> = ({ range = DEFAULT_PIANO_RANGE, width, height }) => {
+export const Piano: FC<PianoProps> = ({ range = DEFAULT_PIANO_RANGE, width, height, activeNoteNumbers = [] }) => {
   const keys = buildKeys(range as Range);
   const [vbWidth, vbHeight] = totalDimensions(range as Range);
+  const activeSet = new Set(activeNoteNumbers);
   const style: React.CSSProperties = {};
   if (width !== undefined) style.width = typeof width === 'number' ? `${width}px` : width;
   if (height !== undefined) style.height = typeof height === 'number' ? `${height}px` : height;
@@ -174,16 +203,37 @@ export const Piano: FC<PianoProps> = ({ range = DEFAULT_PIANO_RANGE, width, heig
       role="img"
       aria-label="Piano keyboard"
     >
-      {keys.map((key, i) => (
-        <polygon
-          key={`${key.note}-${i}`}
-          points={key.points}
-          fill={key.fill}
-          stroke={key.stroke}
-          strokeWidth={key.strokeWidth}
-          data-note={key.note}
-        />
-      ))}
+      {keys.map((key, i) => {
+        const midi = Note.midi(key.note);
+        const isPressed = midi != null && activeSet.has(midi);
+        const fill = isPressed ? OPTS.pressedPalette[key.isBlack ? 0 : 1] : key.fill;
+        return (
+          <g key={`${key.note}-${i}`}>
+            <polygon
+              points={key.points}
+              fill={fill}
+              stroke={key.stroke}
+              strokeWidth={key.strokeWidth}
+              data-note={key.note}
+              data-pressed={isPressed ? 'true' : undefined}
+            />
+            {isPressed && (
+              <text
+                x={key.cx}
+                y={key.cy}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill={key.isBlack ? '#f2f2ef' : '#1a1a1d'}
+                fontSize={key.isBlack ? 6 : 8}
+                fontWeight="600"
+                className="select-none pointer-events-none"
+              >
+                {key.note}
+              </text>
+            )}
+          </g>
+        );
+      })}
     </svg>
   );
 };
