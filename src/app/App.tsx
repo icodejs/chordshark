@@ -68,7 +68,7 @@ export default function App() {
 
   const [testActive, setTestActive] = useState(false);
   const [testChordFilter, setTestChordFilter] =
-    useState<TestChordFilter>('all');
+    useState<TestChordFilter>('triad');
   const [targetChord, setTargetChord] = useState<DiatonicChord | null>(null);
   const [testCorrectFlash, setTestCorrectFlash] = useState(false);
   const testCorrectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(

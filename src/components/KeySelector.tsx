@@ -1,6 +1,9 @@
 import type { FC } from 'react';
 import type { KeyMode } from '../app/App';
-import { pitchClassToNoteName, getKeyPreferenceForTonic } from '../theory/noteNames';
+import {
+  pitchClassToNoteName,
+  getKeyPreferenceForTonic,
+} from '../theory/noteNames';
 
 interface Props {
   tonicPc: number;
@@ -36,7 +39,7 @@ export const KeySelector: FC<Props> = ({
             disabled ? 'text-slate-500' : 'text-slate-200'
           }`}
         >
-          Key
+          Select key
         </span>
         {disabled && (
           <span
@@ -101,4 +104,3 @@ export const KeySelector: FC<Props> = ({
     </div>
   );
 };
-
