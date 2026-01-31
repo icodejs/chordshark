@@ -203,12 +203,12 @@ export default function App() {
   const recognitionState: RecognitionInputState = !hasKeysHeld
     ? 'idle'
     : !inputStable
-    ? 'listening'
-    : recognisedChord
-    ? 'success'
-    : evaluatedPcs!.length >= MIN_PITCH_CLASSES_FOR_EVALUATION
-    ? 'mismatch'
-    : 'listening';
+      ? 'listening'
+      : recognisedChord
+        ? 'success'
+        : evaluatedPcs!.length >= MIN_PITCH_CLASSES_FOR_EVALUATION
+          ? 'mismatch'
+          : 'listening';
 
   const keyDisplayName = useMemo(() => {
     const tonicName = pitchClassToNoteName(tonicPc, keyPreference);

@@ -55,4 +55,3 @@ export function getStoredKeyMode(): KeyMode | null {
 export function setStoredKeyMode(mode: KeyMode): void {
   safeSet(STORAGE_KEYS.keyMode, mode);
 }
-

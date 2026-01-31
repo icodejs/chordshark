@@ -31,17 +31,22 @@ const CogIcon: FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export const DeviceSelector: FC<Props> = ({ status, inputs, selectedId, onChange }) => {
+export const DeviceSelector: FC<Props> = ({
+  status,
+  inputs,
+  selectedId,
+  onChange,
+}) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const statusLabel =
     status === 'initialising'
       ? 'Requesting MIDI access...'
       : status === 'ready'
-      ? 'MIDI ready'
-      : status === 'unsupported'
-      ? 'Web MIDI not supported'
-      : 'MIDI error';
+        ? 'MIDI ready'
+        : status === 'unsupported'
+          ? 'Web MIDI not supported'
+          : 'MIDI error';
 
   return (
     <div className="flex-1 space-y-1">
@@ -51,10 +56,16 @@ export const DeviceSelector: FC<Props> = ({ status, inputs, selectedId, onChange
           onClick={() => setShowDropdown((prev) => !prev)}
           className="flex items-center gap-1.5 rounded p-0.5 text-slate-400 transition-colors hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-900"
           aria-expanded={showDropdown}
-          aria-label={showDropdown ? 'Hide MIDI device options' : 'Show MIDI device options'}
+          aria-label={
+            showDropdown
+              ? 'Hide MIDI device options'
+              : 'Show MIDI device options'
+          }
         >
           <CogIcon className="h-4 w-4 shrink-0" />
-          <span className="text-sm font-medium text-slate-200">MIDI Device</span>
+          <span className="text-sm font-medium text-slate-200">
+            MIDI Device
+          </span>
         </button>
         <span className="text-xs text-slate-400">{statusLabel}</span>
       </div>
@@ -65,7 +76,9 @@ export const DeviceSelector: FC<Props> = ({ status, inputs, selectedId, onChange
           onChange={(e) => onChange(e.target.value || null)}
           disabled={status !== 'ready'}
         >
-          <option value="">{inputs.length ? 'Select MIDI input…' : 'No inputs detected'}</option>
+          <option value="">
+            {inputs.length ? 'Select MIDI input…' : 'No inputs detected'}
+          </option>
           {inputs.map((input) => (
             <option key={input.id} value={input.id}>
               {input.name}
@@ -76,4 +89,3 @@ export const DeviceSelector: FC<Props> = ({ status, inputs, selectedId, onChange
     </div>
   );
 };
-

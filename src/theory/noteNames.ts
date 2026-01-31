@@ -7,10 +7,13 @@ const FLAT_PCS = new Set<string>(['Db', 'Eb', 'Gb', 'Ab', 'Bb']);
 
 export function midiNoteToPitchClass(noteNumber: number): number {
   const chroma = Note.chroma(Note.fromMidi(noteNumber));
-  return chroma ?? (((noteNumber % 12) + 12) % 12);
+  return chroma ?? ((noteNumber % 12) + 12) % 12;
 }
 
-export function getKeyPreferenceForTonic(tonicPc: number, mode: KeyMode): KeyPreference {
+export function getKeyPreferenceForTonic(
+  tonicPc: number,
+  mode: KeyMode
+): KeyPreference {
   void mode; // reserved for mode-specific key preference (e.g. minor keys)
   switch (tonicPc % 12) {
     case 1:
@@ -33,6 +36,9 @@ export function pitchClassToNoteName(pc: number, pref: KeyPreference): string {
   return base;
 }
 
-export function pitchClassSetToNoteNames(pcs: number[], pref: KeyPreference): string[] {
+export function pitchClassSetToNoteNames(
+  pcs: number[],
+  pref: KeyPreference
+): string[] {
   return pcs.map((pc) => pitchClassToNoteName(pc, pref));
 }
