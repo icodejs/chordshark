@@ -1,6 +1,10 @@
 import { Chord, Key, Note } from 'tonal';
 import type { KeyMode } from '../app/App';
-import { getKeyPreferenceForTonic, midiNoteToPitchClass, pitchClassToNoteName } from './noteNames';
+import {
+  getKeyPreferenceForTonic,
+  midiNoteToPitchClass,
+  pitchClassToNoteName,
+} from './noteNames';
 
 export type TriadQuality = 'maj' | 'min' | 'dim' | 'aug';
 export type SeventhQuality = 'dom7' | 'maj7' | 'min7' | 'hdim7';
@@ -35,7 +39,7 @@ function chordSymbolToPcs(symbol: string): number[] {
 
 function buildDiatonicChordsForKey(
   tonicPc: number,
-  mode: KeyMode,
+  mode: KeyMode
 ): DiatonicChord[] {
   const keyPref = getKeyPreferenceForTonic(tonicPc, mode);
   const tonicName = pitchClassToNoteName(tonicPc, keyPref);
@@ -48,13 +52,46 @@ function buildDiatonicChordsForKey(
   const triads = keySource.triads as string[];
   const chords = keySource.chords as string[];
 
-  const triadDegreesMajor = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'] as const;
-  const triadDegreesMinor = ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'] as const;
-  const seventhDegreesMajor = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'viiø'] as const;
-  const seventhDegreesMinor = ['i', 'iiø', 'III', 'iv', 'v', 'VI', 'VII'] as const;
+  const triadDegreesMajor = [
+    'I',
+    'ii',
+    'iii',
+    'IV',
+    'V',
+    'vi',
+    'vii°',
+  ] as const;
+  const triadDegreesMinor = [
+    'i',
+    'ii°',
+    'III',
+    'iv',
+    'v',
+    'VI',
+    'VII',
+  ] as const;
+  const seventhDegreesMajor = [
+    'I',
+    'ii',
+    'iii',
+    'IV',
+    'V',
+    'vi',
+    'viiø',
+  ] as const;
+  const seventhDegreesMinor = [
+    'i',
+    'iiø',
+    'III',
+    'iv',
+    'v',
+    'VI',
+    'VII',
+  ] as const;
 
   const triadDegrees = mode === 'major' ? triadDegreesMajor : triadDegreesMinor;
-  const seventhDegrees = mode === 'major' ? seventhDegreesMajor : seventhDegreesMinor;
+  const seventhDegrees =
+    mode === 'major' ? seventhDegreesMajor : seventhDegreesMinor;
 
   const result: DiatonicChord[] = [];
 
@@ -109,7 +146,10 @@ function inferSeventhQuality(symbol: string): SeventhQuality {
 /** Build diatonic triads and seventh chords for the given key. */
 export { buildDiatonicChordsForKey };
 
-export function recogniseChord(activePcs: number[], chords: DiatonicChord[]): DiatonicChord | null {
+export function recogniseChord(
+  activePcs: number[],
+  chords: DiatonicChord[]
+): DiatonicChord | null {
   const normalisedActive = normalisePitchClassSet(activePcs);
   for (const chord of chords) {
     if (chord.pcs.length !== normalisedActive.length) continue;
@@ -129,7 +169,7 @@ export function recogniseChord(activePcs: number[], chords: DiatonicChord[]): Di
 
 export function detectInversionLabel(
   activeNoteNumbers: number[],
-  chord: DiatonicChord,
+  chord: DiatonicChord
 ): string | null {
   if (activeNoteNumbers.length === 0) return null;
   const sorted = [...activeNoteNumbers].sort((a, b) => a - b);

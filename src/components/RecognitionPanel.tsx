@@ -36,7 +36,9 @@ export const RecognitionPanel: FC<Props> = ({
           data-testid="test-correct-feedback"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <span className="text-5xl" aria-hidden>✓</span>
+            <span className="text-5xl" aria-hidden>
+              ✓
+            </span>
             <p className="text-2xl sm:text-3xl font-bold text-emerald-100 tracking-tight">
               Correct!
             </p>
@@ -59,7 +61,9 @@ export const RecognitionPanel: FC<Props> = ({
           </p>
           <p className="text-lg text-slate-400 mt-1">
             {targetChord.degree}
-            <span className="text-slate-500 ml-2 text-base">{targetChord.type}</span>
+            <span className="text-slate-500 ml-2 text-base">
+              {targetChord.type}
+            </span>
           </p>
         </div>
       </div>
@@ -68,7 +72,10 @@ export const RecognitionPanel: FC<Props> = ({
 
   if (recognitionState === 'idle') {
     return (
-      <div className="flex items-center justify-center min-h-[7.5rem]" data-testid="recognition-placeholder">
+      <div
+        className="flex items-center justify-center min-h-[7.5rem]"
+        data-testid="recognition-placeholder"
+      >
         <p className="text-slate-500 text-sm font-medium tracking-wide">
           Play a chord to see recognition
         </p>
@@ -146,4 +153,3 @@ export const RecognitionPanel: FC<Props> = ({
     </div>
   );
 };
-

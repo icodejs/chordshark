@@ -12,6 +12,10 @@ alwaysApply: true
     - `GIT_AUTHOR_NAME='Tahir J' GIT_AUTHOR_EMAIL='icodejs@gmail.com' GIT_COMMITTER_NAME='Tahir J' GIT_COMMITTER_EMAIL='icodejs@gmail.com' git commit -m "..."`
   - Or ensure repo-local config is set: `git config user.name "Tahir J"` and `git config user.email "icodejs@gmail.com"` (user can run this once).
 
+## Formatting
+
+- Use the project's Prettier config (`.prettierrc`): 2-space indent, single quotes, semicolons, trailing commas where valid (ES5), print width 80. Match this style so generated code does not change on save.
+
 ## Project
 
 - React + TypeScript + Vite; Tailwind for styles.

@@ -93,7 +93,9 @@ describe('recogniseChord', () => {
 
 describe('detectInversionLabel', () => {
   const cMajorChords = buildDiatonicChordsForKey(0, 'major');
-  const cTriad = cMajorChords.find((c) => c.symbol === 'C' && c.type === 'triad') as DiatonicChord;
+  const cTriad = cMajorChords.find(
+    (c) => c.symbol === 'C' && c.type === 'triad'
+  ) as DiatonicChord;
   const cMaj7 = cMajorChords.find((c) => c.symbol === 'Cmaj7') as DiatonicChord;
 
   it('returns "root" when bass is root', () => {
@@ -128,6 +130,8 @@ describe('getChordDisplayName', () => {
 
   it('returns the chord symbol', () => {
     expect(getChordDisplayName(gTriad)).toBe('G');
-    expect(getChordDisplayName(chords.find((c) => c.symbol === 'Dm')!)).toBe('Dm');
+    expect(getChordDisplayName(chords.find((c) => c.symbol === 'Dm')!)).toBe(
+      'Dm'
+    );
   });
 });

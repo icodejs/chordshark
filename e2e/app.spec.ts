@@ -4,12 +4,18 @@ test.describe('Piano Chord Trainer', () => {
   test('loads and shows main UI', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: /Piano Chord Trainer/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Piano Chord Trainer/i })
+    ).toBeVisible();
     await expect(page.getByTestId('recognition-panel')).toBeVisible();
-    await expect(page.getByTestId('recognition-placeholder')).toContainText('Play a chord to see recognition');
+    await expect(page.getByTestId('recognition-placeholder')).toContainText(
+      'Play a chord to see recognition'
+    );
     await expect(page.getByTestId('key-selector')).toBeVisible();
     await expect(page.getByTestId('held-notes-section')).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Held notes/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Held notes/i })
+    ).toBeVisible();
   });
 
   test('key selector changes tonic and mode', async ({ page }) => {
@@ -29,7 +35,9 @@ test.describe('Piano Chord Trainer', () => {
     await expect(majorBtn).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('main content is reachable and device/key section visible', async ({ page }) => {
+  test('main content is reachable and device/key section visible', async ({
+    page,
+  }) => {
     await page.goto('/');
 
     await expect(page.getByTestId('app-header')).toBeVisible();

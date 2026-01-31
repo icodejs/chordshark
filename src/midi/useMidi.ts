@@ -16,7 +16,7 @@ interface UseMidiResult {
   selectedInputId: string | null;
   activeNoteNumbers: number[];
   derivedActivePitchClasses: Set<number>;
-   hasRecentMidiActivity: boolean;
+  hasRecentMidiActivity: boolean;
   selectInput: (id: string | null) => void;
 }
 
@@ -32,7 +32,10 @@ export function useMidi(): UseMidiResult {
 
   // Keep a ref to current MIDI input to attach/detach listeners.
   useEffect(() => {
-    if (typeof navigator === 'undefined' || !('requestMIDIAccess' in navigator)) {
+    if (
+      typeof navigator === 'undefined' ||
+      !('requestMIDIAccess' in navigator)
+    ) {
       queueMicrotask(() => setStatus('unsupported'));
       return;
     }
@@ -43,12 +46,12 @@ export function useMidi(): UseMidiResult {
 
     const handleStateChange = () => {
       if (!midiAccess || !mounted) return;
-      const nextInputs: MidiInputInfo[] = Array.from(midiAccess.inputs.values()).map(
-        (input: MIDIInput) => ({
-          id: input.id,
-          name: input.name || 'Unknown device',
-        }),
-      );
+      const nextInputs: MidiInputInfo[] = Array.from(
+        midiAccess.inputs.values()
+      ).map((input: MIDIInput) => ({
+        id: input.id,
+        name: input.name || 'Unknown device',
+      }));
       setInputs(nextInputs);
 
       // Try to keep current selection if still available; otherwise clear.
@@ -80,7 +83,8 @@ export function useMidi(): UseMidiResult {
       setActiveNotes((prev) => {
         const next = new Set(prev);
         const isNoteOn = command === 0x90 && velocity > 0;
-        const isNoteOff = command === 0x80 || (command === 0x90 && velocity === 0);
+        const isNoteOff =
+          command === 0x80 || (command === 0x90 && velocity === 0);
 
         if (isNoteOn) {
           next.add(noteNumber);
@@ -100,7 +104,9 @@ export function useMidi(): UseMidiResult {
       setActiveNotes(new Set());
 
       if (!inputId) return;
-      const input = Array.from(midiAccess.inputs.values()).find((i) => i.id === inputId) || null;
+      const input =
+        Array.from(midiAccess.inputs.values()).find((i) => i.id === inputId) ||
+        null;
       if (!input) return;
       currentInput = input;
       currentInput.onmidimessage = handleMIDIMessage;
@@ -121,7 +127,7 @@ export function useMidi(): UseMidiResult {
         const storedId = getStoredMidiInputId();
         if (storedId) {
           const stillThere = Array.from(midiAccess.inputs.values()).some(
-            (i: MIDIInput) => i.id === storedId,
+            (i: MIDIInput) => i.id === storedId
           );
           if (stillThere) {
             setSelectedInputId(storedId);
@@ -178,4 +184,3 @@ export function useMidi(): UseMidiResult {
     selectInput,
   };
 }
-
