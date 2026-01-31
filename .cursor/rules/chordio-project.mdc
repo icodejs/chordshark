@@ -14,7 +14,7 @@ alwaysApply: true
 
 ## Formatting
 
-- Use the project's Prettier config (`.prettierrc`): 2-space indent, double quotes, semicolons, trailing commas where valid (ES5), print width 100. Match this style so generated code does not change on save.
+- Use the project's Prettier config (`.prettierrc`): 2-space indent, single quotes, semicolons, trailing commas where valid (ES5), print width 80. Match this style so generated code does not change on save.
 
 ## Project
 
