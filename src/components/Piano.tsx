@@ -6,7 +6,7 @@ import { Note } from 'tonal';
  * Accepts activeNoteNumbers to highlight pressed keys (darker fill + note label).
  */
 
-export const DEFAULT_PIANO_RANGE = ['C3', 'B5'] as const;
+export const DEFAULT_PIANO_RANGE = ['C3', 'C6'] as const;
 
 const KEYBOARD_LAYOUT = [
   { pitches: ['C', 'B#'], upperOffset: 0, upperWidth: 15.05 },
