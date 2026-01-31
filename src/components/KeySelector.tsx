@@ -1,27 +1,62 @@
 import type { FC } from 'react';
 import type { KeyMode } from '../app/App';
-import { pitchClassToNoteName, getKeyPreferenceForTonic } from '../theory/noteNames';
+import {
+  pitchClassToNoteName,
+  getKeyPreferenceForTonic,
+} from '../theory/noteNames';
 
 interface Props {
   tonicPc: number;
   mode: KeyMode;
   onTonicChange: (pc: number) => void;
   onModeChange: (mode: KeyMode) => void;
+  /** When true, key cannot be changed (e.g. during a practice test). */
+  disabled?: boolean;
 }
 
 const TONIC_OPTIONS = Array.from({ length: 12 }, (_, pc) => pc);
 
-export const KeySelector: FC<Props> = ({ tonicPc, mode, onTonicChange, onModeChange }) => {
+export const KeySelector: FC<Props> = ({
+  tonicPc,
+  mode,
+  onTonicChange,
+  onModeChange,
+  disabled = false,
+}) => {
   const pref = getKeyPreferenceForTonic(tonicPc, mode);
 
   return (
-    <div className="flex-1 space-y-1" data-testid="key-selector">
-      <span className="text-sm font-medium text-slate-200">Key</span>
-      <div className="flex gap-2">
+    <div
+      className={`flex-1 space-y-1 transition-opacity duration-200 ${
+        disabled ? 'opacity-75' : ''
+      }`}
+      data-testid="key-selector"
+      aria-disabled={disabled}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className={`text-sm font-medium ${
+            disabled ? 'text-slate-500' : 'text-slate-200'
+          }`}
+        >
+          Select key
+        </span>
+        {disabled && (
+          <span
+            className="text-xs text-slate-500"
+            title="Key is locked while a practice test is running"
+          >
+            Locked
+          </span>
+        )}
+      </div>
+      <div className={`flex gap-2 ${disabled ? 'pointer-events-none' : ''}`}>
         <select
           data-testid="key-tonic-select"
           aria-label="Key tonic"
-          className="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 shadow-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+          aria-disabled={disabled}
+          disabled={disabled}
+          className="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 shadow-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 disabled:cursor-not-allowed disabled:opacity-90"
           value={tonicPc}
           onChange={(e) => onTonicChange(Number(e.target.value))}
         >
@@ -31,17 +66,22 @@ export const KeySelector: FC<Props> = ({ tonicPc, mode, onTonicChange, onModeCha
             </option>
           ))}
         </select>
-        <div className="inline-flex rounded-md border border-slate-700 bg-slate-900 p-0.5 text-xs" role="group" aria-label="Key mode">
+        <div
+          className="inline-flex rounded-md border border-slate-700 bg-slate-900 p-0.5 text-xs"
+          role="group"
+          aria-label="Key mode"
+        >
           <button
             type="button"
             data-testid="key-mode-major"
             aria-pressed={mode === 'major'}
+            disabled={disabled}
             onClick={() => onModeChange('major')}
-            className={`px-3 py-1 rounded-sm ${
+            className={`px-3 py-1 rounded-sm transition-colors ${
               mode === 'major'
                 ? 'bg-sky-500 text-slate-950'
                 : 'text-slate-300 hover:text-slate-100'
-            }`}
+            } disabled:cursor-not-allowed disabled:opacity-90`}
           >
             Major
           </button>
@@ -49,12 +89,13 @@ export const KeySelector: FC<Props> = ({ tonicPc, mode, onTonicChange, onModeCha
             type="button"
             data-testid="key-mode-minor"
             aria-pressed={mode === 'minor'}
+            disabled={disabled}
             onClick={() => onModeChange('minor')}
-            className={`px-3 py-1 rounded-sm ${
+            className={`px-3 py-1 rounded-sm transition-colors ${
               mode === 'minor'
                 ? 'bg-sky-500 text-slate-950'
                 : 'text-slate-300 hover:text-slate-100'
-            }`}
+            } disabled:cursor-not-allowed disabled:opacity-90`}
           >
             Minor
           </button>
@@ -63,4 +104,3 @@ export const KeySelector: FC<Props> = ({ tonicPc, mode, onTonicChange, onModeCha
     </div>
   );
 };
-

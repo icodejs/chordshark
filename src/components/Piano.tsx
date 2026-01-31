@@ -6,7 +6,7 @@ import { Note } from 'tonal';
  * Accepts activeNoteNumbers to highlight pressed keys (darker fill + note label).
  */
 
-export const DEFAULT_PIANO_RANGE = ['C3', 'B5'] as const;
+export const DEFAULT_PIANO_RANGE = ['C3', 'C6'] as const;
 
 const KEYBOARD_LAYOUT = [
   { pitches: ['C', 'B#'], upperOffset: 0, upperWidth: 15.05 },
@@ -36,6 +36,8 @@ const OPTS = {
   palette: ['#39383D', '#F2F2EF'] as const,
   /** Darker fill when key is pressed (black key, white key). */
   pressedPalette: ['#1a1a1d', '#c4c4be'] as const,
+  /** Grey for first/last key labels when not pressed. */
+  rangeLabelFill: '#C6C6C6',
 };
 
 type Range = readonly [string, string];
@@ -43,18 +45,27 @@ type Range = readonly [string, string];
 function parseRange(range: Range) {
   const pitchStart = range[0].slice(0, -1);
   const pitchEnd = range[1].slice(0, -1);
-  const first = KEYBOARD_LAYOUT.findIndex((k) => (k.pitches as readonly string[]).includes(pitchStart));
-  const last = KEYBOARD_LAYOUT.findIndex((k) => (k.pitches as readonly string[]).includes(pitchEnd));
+  const first = KEYBOARD_LAYOUT.findIndex((k) =>
+    (k.pitches as readonly string[]).includes(pitchStart)
+  );
+  const last = KEYBOARD_LAYOUT.findIndex((k) =>
+    (k.pitches as readonly string[]).includes(pitchEnd)
+  );
   const keyOffset = first >= 0 ? first : 0;
   const octaveStart = parseInt(range[0].slice(-1), 10) || 3;
   const octaveEnd = parseInt(range[1].slice(-1), 10) || 5;
-  const keyCount = Math.max(0, (octaveEnd - octaveStart + 1) * 12 - keyOffset - (11 - last));
+  const keyCount = Math.max(
+    0,
+    (octaveEnd - octaveStart + 1) * 12 - keyOffset - (11 - last)
+  );
   return { keyCount, keyOffset, octaveStart };
 }
 
 function whiteIndex(index: number) {
   return (
-    Array.from({ length: index % 12 }, (_, i) => i).filter((i) => !ACCIDENTALS.includes(i)).length +
+    Array.from({ length: index % 12 }, (_, i) => i).filter(
+      (i) => !ACCIDENTALS.includes(i)
+    ).length +
     Math.floor(index / 12) * 7
   );
 }
@@ -75,7 +86,7 @@ function upperWidthScaled(
   index: number,
   keyOffset: number,
   keyCount: number,
-  scaleX: number,
+  scaleX: number
 ) {
   const isFirst = index === keyOffset;
   const isLast = index === keyOffset + keyCount - 1;
@@ -84,7 +95,12 @@ function upperWidthScaled(
   return key.upperWidth * scaleX;
 }
 
-function getKeyOffset(index: number, keyOffset: number, scaleX: number, strokeWidth: number) {
+function getKeyOffset(
+  index: number,
+  keyOffset: number,
+  scaleX: number,
+  strokeWidth: number
+) {
   const { lowerWidth } = OPTS;
   const wi = whiteIndex(index);
   const oi = whiteIndex(keyOffset);
@@ -94,7 +110,9 @@ function getKeyOffset(index: number, keyOffset: number, scaleX: number, strokeWi
     firstOffset -= lowerWidth - (prev.upperWidth + prev.upperOffset);
   }
   if (!ACCIDENTALS.includes(index % 12)) {
-    return (wi * lowerWidth - oi * lowerWidth) * scaleX + Math.ceil(strokeWidth / 2);
+    return (
+      (wi * lowerWidth - oi * lowerWidth) * scaleX + Math.ceil(strokeWidth / 2)
+    );
   }
   let sum = firstOffset * scaleX + Math.ceil(strokeWidth / 2);
   for (let i = keyOffset; i < index; i++) {
@@ -116,7 +134,16 @@ interface KeyData {
 
 function buildKeys(range: Range): KeyData[] {
   const { keyCount, keyOffset, octaveStart } = parseRange(range);
-  const { scaleX, scaleY, lowerWidth, upperHeight, lowerHeight, strokeWidth, stroke, palette } = OPTS;
+  const {
+    scaleX,
+    scaleY,
+    lowerWidth,
+    upperHeight,
+    lowerHeight,
+    strokeWidth,
+    stroke,
+    palette,
+  } = OPTS;
   const totalHeight = (lowerHeight + upperHeight) * scaleY;
   const keys: KeyData[] = [];
 
@@ -124,7 +151,8 @@ function buildKeys(range: Range): KeyData[] {
     const layout = KEYBOARD_LAYOUT[i % 12];
     const isBlack = ACCIDENTALS.includes(i % 12);
     const upperW = upperWidthScaled(layout, i, keyOffset, keyCount, scaleX);
-    const upperOff = (index: number) => (index === keyOffset ? 0 : layout.upperOffset) * scaleX;
+    const upperOff = (index: number) =>
+      (index === keyOffset ? 0 : layout.upperOffset) * scaleX;
     const offsetX = getKeyOffset(i, keyOffset, scaleX, strokeWidth);
     const lowerW = isBlack ? layout.upperWidth * scaleX : lowerWidth * scaleX;
     const offsetY = 0;
@@ -171,7 +199,8 @@ function buildKeys(range: Range): KeyData[] {
 
 function totalDimensions(range: Range): [number, number] {
   const { keyCount, keyOffset } = parseRange(range);
-  const { scaleX, scaleY, lowerWidth, upperHeight, lowerHeight, strokeWidth } = OPTS;
+  const { scaleX, scaleY, lowerWidth, upperHeight, lowerHeight, strokeWidth } =
+    OPTS;
   const whiteCount = whiteIndex(keyOffset + keyCount) - whiteIndex(keyOffset);
   const w = scaleX * lowerWidth * whiteCount;
   const h = (lowerHeight + upperHeight) * scaleY;
@@ -186,13 +215,20 @@ export interface PianoProps {
   activeNoteNumbers?: number[];
 }
 
-export const Piano: FC<PianoProps> = ({ range = DEFAULT_PIANO_RANGE, width, height, activeNoteNumbers = [] }) => {
+export const Piano: FC<PianoProps> = ({
+  range = DEFAULT_PIANO_RANGE,
+  width,
+  height,
+  activeNoteNumbers = [],
+}) => {
   const keys = buildKeys(range as Range);
   const [vbWidth, vbHeight] = totalDimensions(range as Range);
   const activeSet = new Set(activeNoteNumbers);
   const style: React.CSSProperties = {};
-  if (width !== undefined) style.width = typeof width === 'number' ? `${width}px` : width;
-  if (height !== undefined) style.height = typeof height === 'number' ? `${height}px` : height;
+  if (width !== undefined)
+    style.width = typeof width === 'number' ? `${width}px` : width;
+  if (height !== undefined)
+    style.height = typeof height === 'number' ? `${height}px` : height;
 
   return (
     <svg
@@ -206,7 +242,16 @@ export const Piano: FC<PianoProps> = ({ range = DEFAULT_PIANO_RANGE, width, heig
       {keys.map((key, i) => {
         const midi = Note.midi(key.note);
         const isPressed = midi != null && activeSet.has(midi);
-        const fill = isPressed ? OPTS.pressedPalette[key.isBlack ? 0 : 1] : key.fill;
+        const fill = isPressed
+          ? OPTS.pressedPalette[key.isBlack ? 0 : 1]
+          : key.fill;
+        const isRangeEdge = i === 0 || i === keys.length - 1;
+        const showLabel = isPressed || isRangeEdge;
+        const labelFill = isPressed
+          ? key.isBlack
+            ? '#f2f2ef'
+            : '#1a1a1d'
+          : OPTS.rangeLabelFill;
         return (
           <g key={`${key.note}-${i}`}>
             <polygon
@@ -217,13 +262,13 @@ export const Piano: FC<PianoProps> = ({ range = DEFAULT_PIANO_RANGE, width, heig
               data-note={key.note}
               data-pressed={isPressed ? 'true' : undefined}
             />
-            {isPressed && (
+            {showLabel && (
               <text
                 x={key.cx}
                 y={key.cy}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fill={key.isBlack ? '#f2f2ef' : '#1a1a1d'}
+                fill={labelFill}
                 fontSize={key.isBlack ? 6 : 8}
                 fontWeight="600"
                 className="select-none pointer-events-none"
