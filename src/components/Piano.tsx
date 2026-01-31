@@ -36,6 +36,8 @@ const OPTS = {
   palette: ['#39383D', '#F2F2EF'] as const,
   /** Darker fill when key is pressed (black key, white key). */
   pressedPalette: ['#1a1a1d', '#c4c4be'] as const,
+  /** Grey for first/last key labels when not pressed. */
+  rangeLabelFill: '#6b7280',
 };
 
 type Range = readonly [string, string];
@@ -207,6 +209,13 @@ export const Piano: FC<PianoProps> = ({ range = DEFAULT_PIANO_RANGE, width, heig
         const midi = Note.midi(key.note);
         const isPressed = midi != null && activeSet.has(midi);
         const fill = isPressed ? OPTS.pressedPalette[key.isBlack ? 0 : 1] : key.fill;
+        const isRangeEdge = i === 0 || i === keys.length - 1;
+        const showLabel = isPressed || isRangeEdge;
+        const labelFill = isPressed
+          ? key.isBlack
+            ? '#f2f2ef'
+            : '#1a1a1d'
+          : OPTS.rangeLabelFill;
         return (
           <g key={`${key.note}-${i}`}>
             <polygon
@@ -217,13 +226,13 @@ export const Piano: FC<PianoProps> = ({ range = DEFAULT_PIANO_RANGE, width, heig
               data-note={key.note}
               data-pressed={isPressed ? 'true' : undefined}
             />
-            {isPressed && (
+            {showLabel && (
               <text
                 x={key.cx}
                 y={key.cy}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fill={key.isBlack ? '#f2f2ef' : '#1a1a1d'}
+                fill={labelFill}
                 fontSize={key.isBlack ? 6 : 8}
                 fontWeight="600"
                 className="select-none pointer-events-none"
