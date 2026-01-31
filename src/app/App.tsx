@@ -240,6 +240,7 @@ export default function App() {
                 mode={mode}
                 onTonicChange={setTonicPc}
                 onModeChange={setMode}
+                disabled={testActive}
               />
             </div>
             <div
